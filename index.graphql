@@ -1,0 +1,9 @@
+schema
+  @sdl(
+    files: [
+      "openweathermap/weather-report-owm.graphql"
+      "ip-api/locationIpApi.graphql"
+    ]
+  ) {
+  query: Query
+}
