@@ -1,9 +1,12 @@
 schema
-  @sdl(
-    files: [
-      "openweathermap/weather-report-owm.graphql"
-      "ip-api/locationIpApi.graphql"
-    ]
-  ) {
-  query: Query
+    @sdl(
+        files: [
+            "airtable/event.graphql"
+            "airtable/race.graphql"
+            "airtable/event-races.graphql"
+            "airtable/aidStation.graphql"
+            "airtable/race-aidStations.graphql"
+        ]
+    ) {
+    query: Query
 }

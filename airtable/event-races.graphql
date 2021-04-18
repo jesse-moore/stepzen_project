@@ -1,0 +1,7 @@
+extend type Event {
+  races: [Race]
+    @materializer(
+      query: "airtableRaces"
+      arguments: [{ name: "eventID", field: "id" }]
+    )
+}

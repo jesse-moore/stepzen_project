@@ -1,0 +1,35 @@
+type Race {
+    id: ID!
+    name: String!
+    mapUrl: String
+    date: String
+    type: String
+}
+
+type Query {
+    airtableRace(id: ID!): [Race]
+        @rest(
+            setters: [
+                { field: "name", path: "fields.Name" }
+                { field: "mapUrl", path: "fields.Map[0].url" }
+                { field: "date", path: "fields.Date" }
+                { field: "type", path: "fields.Type" }
+            ]
+
+            resultroot: ""
+            endpoint: "https://api.airtable.com/v0/$baseid/races/$id"
+            configuration: "airtable_config"
+        )
+    airtableRaces(eventID: ID!): [Race]
+        @rest(
+            resultroot: "records[]"
+            setters: [
+                { field: "name", path: "fields.Name" }
+                { field: "mapUrl", path: "fields.Map[0].url" }
+                { field: "date", path: "fields.Date" }
+                { field: "type", path: "fields.Type" }
+            ]
+            endpoint: "https://api.airtable.com/v0/$baseid/races?filterByFormula=AND(NOT%28%7BName%7D%20%3D%20%27%27%29,{event_id}=%27$eventID%27)"
+            configuration: "airtable_config"
+        )
+}
