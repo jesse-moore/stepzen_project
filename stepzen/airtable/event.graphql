@@ -2,19 +2,20 @@ type Event {
     id: String!
     name: String
     date: String
-    #   raceIds: []!
+    slug: String!
 }
 
 type Query {
-    airtableEvent(id: String!): Event
+    airtableEvent(eventSlug: String!): Event
         @rest(
             setters: [
                 { field: "name", path: "fields.Name" }
                 { field: "date", path: "fields.Date" }
+                { field: "slug", path: "fields.slug" }
             ]
 
-            resultroot: ""
-            endpoint: "https://api.airtable.com/v0/$baseid/events/$id"
+            resultroot: "records[]"
+            endpoint: "https://api.airtable.com/v0/$baseid/events/?filterByFormula={slug}=%27$eventSlug%27"
             configuration: "airtable_config"
         )
     airtablesEvents: [Event]
@@ -23,6 +24,7 @@ type Query {
             setters: [
                 { field: "name", path: "fields.Name" }
                 { field: "date", path: "fields.Date" }
+                { field: "slug", path: "fields.slug" }
             ]
 
             endpoint: "https://api.airtable.com/v0/$baseid/events?filterByFormula=NOT%28%7BName%7D%20%3D%20%27%27%29"
