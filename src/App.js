@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Event from './pages/Event'
+import MapBoxMap from './components/MapBoxMap'
+
+const map = new MapBoxMap()
 
 function App() {
     return (
@@ -11,10 +14,10 @@ function App() {
                 <header>
                     <Navbar />
                 </header>
-                <main className="">
+                <main>
                     <Switch>
                         <Route path="/event/:slug">
-                            <Event />
+                            <Event map={map} />
                         </Route>
                         <Route path="/">
                             <Home />

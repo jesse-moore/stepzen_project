@@ -2,6 +2,9 @@ type Event {
     id: String!
     name: String
     date: String
+	location: String
+    description: String
+    heroPhotoURL: String
     slug: String!
 }
 
@@ -11,7 +14,10 @@ type Query {
             setters: [
                 { field: "name", path: "fields.Name" }
                 { field: "date", path: "fields.Date" }
+                { field: "location", path: "fields.Location" }
                 { field: "slug", path: "fields.slug" }
+                { field: "description", path: "fields.Description" }
+                { field: "heroPhotoURL", path: "fields.Hero_Photo[0].url" }
             ]
 
             resultroot: "records[]"

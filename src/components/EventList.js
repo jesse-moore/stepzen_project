@@ -8,6 +8,7 @@ const GET_EVENTS = gql`
         airtablesEvents {
             name
             date
+			slug
             races {
                 name
                 type
@@ -42,12 +43,11 @@ export const EventList = () => {
 
     if (error) return <p>{JSON.stringify(error)}</p>
     if (loading) return <p>Loading ...</p>
-    console.log(data)
     const { airtablesEvents } = data
     return (
         <>
             {airtablesEvents.map(({ ...event }, i) => (
-                <Event {...event} key={event.id} i={i} />
+                <Event {...event} key={event.slug} i={i} />
             ))}
         </>
     )
@@ -62,7 +62,7 @@ const Event = ({ name, date, i, id }) => {
                     <div className="text-2xl mb-2 text-gray-900">{name}</div>
                     <div className="flex flex-row">
                         {types.map((type) => (
-                            <Type type={type} key={type} />
+                            <Type type={type} key={slug+type} />
                         ))}
                     </div>
                 </div>
