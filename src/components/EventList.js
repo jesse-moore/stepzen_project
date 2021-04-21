@@ -2,17 +2,19 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import slugify from 'slugify'
 import { gql, useQuery } from '@apollo/client'
+import getRaceTypes from '../utils/getRaceTypes'
 
 const GET_EVENTS = gql`
     query MyQuery {
         airtablesEvents {
             name
             date
-			slug
+            slug
+            address
+            state
+            city
             races {
-                name
                 type
-                date
             }
         }
     }
@@ -35,9 +37,6 @@ const typeColor = (type) => {
     }
 }
 
-const types = ['5k', '10k', 'Half Marathon', 'Marathon']
-const location = ['Bayyari Park, Springdale, AR', 'Emma St, Springdale, AR']
-
 export const EventList = () => {
     const { loading, error, data } = useQuery(GET_EVENTS)
 
@@ -53,22 +52,23 @@ export const EventList = () => {
     )
 }
 
-const Event = ({ name, date, i, id }) => {
+const Event = ({ name, date, city, state, races }) => {
     const slug = slugify(name, { lower: true })
+    const types = getRaceTypes(races)
     return (
-        <Link to={{ pathname: `/event/${slug}`, state: { id } }}>
+        <Link to={{ pathname: `/event/${slug}` }}>
             <div className="flex flex-row items-center min-h-full max-w-full shadow rounded p-4 my-4 bg-white flex-wrap min-w-min whitespace-nowrap">
                 <div className="mr-auto relative">
                     <div className="text-2xl mb-2 text-gray-900">{name}</div>
                     <div className="flex flex-row">
                         {types.map((type) => (
-                            <Type type={type} key={slug+type} />
+                            <Type type={type} key={slug + type} />
                         ))}
                     </div>
                 </div>
                 <div className="flex flex-row flex-wrap font-thin text-lg">
                     <div className="mr-auto w-36">{date}</div>
-                    <div className="w-52">{location[i]}</div>
+                    <div className="w-52">{`${city}, ${state}`}</div>
                 </div>
             </div>
         </Link>

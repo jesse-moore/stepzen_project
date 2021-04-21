@@ -2,10 +2,19 @@ type Event {
     id: String!
     name: String
     date: String
-	location: String
+    address: String
+	city: String
+	state: String
+    location: String
     description: String
     heroPhotoURL: String
     slug: String!
+	heroImg: [HeroImg]
+		@materializer (query: "eventHeroImg")
+}
+
+type HeroImg {
+	url: String
 }
 
 type Query {
@@ -14,10 +23,11 @@ type Query {
             setters: [
                 { field: "name", path: "fields.Name" }
                 { field: "date", path: "fields.Date" }
-                { field: "location", path: "fields.Location" }
+                { field: "address", path: "fields.Address" }
+                { field: "city", path: "fields.City" }
+                { field: "state", path: "fields.State" }
                 { field: "slug", path: "fields.slug" }
                 { field: "description", path: "fields.Description" }
-                { field: "heroPhotoURL", path: "fields.Hero_Photo[0].url" }
             ]
 
             resultroot: "records[]"
@@ -30,10 +40,20 @@ type Query {
             setters: [
                 { field: "name", path: "fields.Name" }
                 { field: "date", path: "fields.Date" }
+                { field: "address", path: "fields.Address" }
+                { field: "city", path: "fields.City" }
+                { field: "state", path: "fields.State" }
                 { field: "slug", path: "fields.slug" }
+                { field: "description", path: "fields.Description" }
             ]
 
             endpoint: "https://api.airtable.com/v0/$baseid/events?filterByFormula=NOT%28%7BName%7D%20%3D%20%27%27%29"
+            configuration: "airtable_config"
+        )
+    eventHeroImg(id: ID!): [HeroImg]
+        @rest(
+            resultroot: "fields.Hero_Photo[]"
+            endpoint: "https://api.airtable.com/v0/$baseid/events/$id"
             configuration: "airtable_config"
         )
 }

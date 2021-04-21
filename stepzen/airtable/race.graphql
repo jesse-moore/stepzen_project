@@ -1,9 +1,14 @@
 type Race {
     id: ID!
     name: String!
-    mapUrl: String
     date: String
     type: String
+	map: [Map]
+		@materializer (query: "raceMap")
+}
+
+type Map {
+	url: String
 }
 
 type Query {
@@ -11,7 +16,6 @@ type Query {
         @rest(
             setters: [
                 { field: "name", path: "fields.Name" }
-                { field: "mapUrl", path: "fields.Map[0].url" }
                 { field: "date", path: "fields.Date" }
                 { field: "type", path: "fields.Type" }
             ]
@@ -25,11 +29,16 @@ type Query {
             resultroot: "records[]"
             setters: [
                 { field: "name", path: "fields.Name" }
-                { field: "mapUrl", path: "fields.Map[0].url"}
                 { field: "date", path: "fields.Date" }
                 { field: "type", path: "fields.Type" }
             ]
-            endpoint: "https://api.airtable.com/v0/$baseid/races?filterByFormula=AND(NOT%28%7BName%7D%20%3D%20%27%27%29,{event_slug}=%27$eventSlug%27)"
+            endpoint: "https://api.airtable.com/v0/$baseid/races?filterByFormula=AND(NOT%28%7BName%7D%20%3D%20%27%27%29,%7Bevent_slug%7D=%27$eventSlug%27)"
+            configuration: "airtable_config"
+        )
+    raceMap(id: ID!): [Map]
+        @rest(
+            resultroot: "fields.Map[]"
+            endpoint: "https://api.airtable.com/v0/$baseid/races/$id"
             configuration: "airtable_config"
         )
 }

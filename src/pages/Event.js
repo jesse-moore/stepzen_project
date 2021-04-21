@@ -21,12 +21,16 @@ const Event = ({ map }) => {
                 name
                 description
                 location
-                heroPhotoURL
+                heroImg {
+                    url
+                }
                 races {
                     name
                     date
                     type
-                    mapUrl
+                    map {
+                        url
+                    }
                     aidStations {
                         lat
                         lng
@@ -53,9 +57,11 @@ const Event = ({ map }) => {
                 const race = airtableEvent.races.find((race) => {
                     return race.type === raceType
                 })
-                if (!race || !race.mapUrl) return
+                if (!race || !race.map || !race.map[0] || !race.map[0].url) {
+                    return
+                }
                 async function fetchGPX() {
-                    const res = await axios.get(race.mapUrl)
+                    const res = await axios.get(race.map[0].url)
                     return res.data
                 }
 
@@ -77,32 +83,12 @@ const Event = ({ map }) => {
     if (loading) return <p>Loading ...</p>
     const { airtableEvent } = data
     if (!airtableEvent) return <p>No Data</p> //TODO handle no event data
-    const {
-        date,
-        name,
-        heroPhotoURL,
-        location,
-        description,
-        races,
-    } = airtableEvent
-    const dateString = dayjs(date).format('dddd MMMM DD, YYYY')
-    const opacity = 0.6
-    const rgb = 50
-    const overlay = `rgba(${rgb}, ${rgb}, ${rgb}, ${opacity})`
+    const { date, name, heroImg, location, description } = airtableEvent
+
     return (
         <div>
-            <div
-                className="rounded-sm h-80 text-center pt-4 text-gray-200"
-                style={{
-                    background: `linear-gradient(${overlay}, ${overlay}),
-					url(${heroPhotoURL}) center center`,
-                }}
-            >
-                <div className="text-5xl font-semibold">{name}</div>
-                <div className="text-xl pt-4">{dateString}</div>
-                <div className="text-xl pt-4">{location}</div>
-            </div>
             <div className="mt-4 mx-4">
+                <Hero {...{ date, name, heroImg, location }} />
                 <EventDescription description={description} />
                 <div>
                     <h2 className="text-2xl font-semibold">Races</h2>
@@ -139,6 +125,54 @@ const parseDescription = (description) => {
         }
     })
     return descriptionLines
+}
+
+const Hero = ({ date, name, heroImg, location }) => {
+    // heroImg
+    const dateString = dayjs(date).format('dddd MMMM DD, YYYY')
+    return (
+        <HeroImg heroImg={heroImg}>
+            <div className="text-5xl font-semibold">{name}</div>
+            <div className="text-xl pt-4">{dateString}</div>
+            <div className="text-xl pt-4">{location}</div>
+        </HeroImg>
+    )
+}
+
+const HeroImg = ({ heroImg, children }) => {
+    const [img] = heroImg
+    if (!img || !img.url) {
+        const opacity = 0.6
+        const rgbTop = 50
+        const rgbBottom = 100
+        const overlayTop = `rgba(${rgbTop}, ${rgbTop}, ${rgbTop}, ${opacity})`
+        const overlayBottom = `rgba(${rgbBottom}, ${rgbBottom}, ${rgbBottom}, ${opacity})`
+        return (
+            <div
+                className="rounded-sm h-80 text-center pt-4 text-gray-200"
+                style={{
+                    background: `linear-gradient(${overlayTop}, ${overlayBottom})`,
+                }}
+            >
+                {children}
+            </div>
+        )
+    } else {
+        const opacity = 0.6
+        const rgb = 50
+        const overlay = `rgba(${rgb}, ${rgb}, ${rgb}, ${opacity})`
+        return (
+            <div
+                className="rounded-sm h-80 text-center pt-4 text-gray-200"
+                style={{
+                    background: `linear-gradient(${overlay}, ${overlay}),
+				url(${img.url}) center center`,
+                }}
+            >
+                {children}
+            </div>
+        )
+    }
 }
 
 const EventDescription = ({ description }) => {
