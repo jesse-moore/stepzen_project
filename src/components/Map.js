@@ -1,26 +1,30 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 const Map = ({ map, route, points }) => {
+    const [mapIsLoaded, setMapIsLoaded] = useState(map.isLoaded)
     const mapContainer = useRef(null)
 
     useEffect(() => {
         mapContainer.current.appendChild(map.element)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-
-    // console.log(route)
-    useEffect(() => {
-        if (!route) return
         async function loadMap() {
             if (!map.isLoaded) {
                 await map.loadMap({ route, points })
-            } else {
-                // map.loadSource()
+                setMapIsLoaded(map.isLoaded)
             }
         }
         loadMap()
+		
+        return () => {
+            map.removeSources()
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route])
+    }, [])
+
+    useEffect(() => {
+        if (!mapIsLoaded || !route) return
+        map.loadSource({ route, points })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, points, mapIsLoaded])
 
     // if (!map || !route) return null
     return (

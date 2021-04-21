@@ -20,9 +20,15 @@ class mapboxMap {
                 minZoom: 10,
             })
             const pointsGeoJSON = pointsToGeojson(points)
+            route = route || {
+                type: 'FeatureCollection',
+                features: [],
+            }
 
-            this.bounds = getBounds(route)
-            this.fitBounds()
+            if (route.features.length > 0) {
+                this.bounds = getBounds(route)
+                this.fitBounds()
+            }
 
             this.map.on('load', () => {
                 this.map.scrollZoom.disable()
@@ -80,17 +86,6 @@ class mapboxMap {
                 resolve()
             })
 
-            this.map.on('click', async (e) => {
-                const features = this.map.queryRenderedFeatures(e.point, {
-                    layers: ['points'],
-                })
-                if (features.length === 0) return
-                if (features[0].properties) {
-                    console.log(features)
-                    console.log(features[0].properties)
-                }
-            })
-
             const popup = new mapboxgl.Popup({
                 closeButton: false,
                 closeOnClick: false,
@@ -133,29 +128,44 @@ class mapboxMap {
         this.map.fitBounds(this.bounds, { padding: 100 })
     }
 
-    loadSource({ pointsGeoJSON, linesGeoJSON }) {
-        this.map.getSource('points').setData(pointsGeoJSON)
-        this.map.getSource('route').setData(linesGeoJSON)
-        this.bounds = getBounds(pointsGeoJSON)
+    loadSource({ route, points }) {
+        this.map.getSource('route').setData(route)
+        if (points) {
+            this.map.getSource('points').setData(pointsToGeojson(points))
+        }
+        this.bounds = getBounds(route)
         this.fitBounds()
+    }
+
+    removeSources() {
+        this.map.getSource('route').setData({
+            type: 'FeatureCollection',
+            features: [],
+        })
+        this.map.getSource('points').setData(pointsToGeojson(null))
     }
 }
 
 const pointsToGeojson = (points) => {
-    const features = points.map(({ lat, lng, name, aidTypes }) => {
-        return {
-            // feature for Mapbox DC
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [lng, lat],
-            },
-            properties: {
-                title: name,
-                types: aidTypes,
-            },
-        }
-    })
+    let features
+    if (points) {
+        features = points.map(({ lat, lng, name, aidTypes }) => {
+            return {
+                // feature for Mapbox DC
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat],
+                },
+                properties: {
+                    title: name,
+                    types: aidTypes,
+                },
+            }
+        })
+    } else {
+        features = []
+    }
     return { type: 'FeatureCollection', features }
 }
 

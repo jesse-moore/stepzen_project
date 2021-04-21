@@ -11,6 +11,7 @@ const Event = ({ map }) => {
     const [raceType, setRaceType] = useState(null)
     const [raceTypes, setRaceTypes] = useState([])
     const [route, setRoute] = useState(null)
+    const [points, setPoints] = useState([])
 
     const { slug } = useParams()
     const GET_RACES = gql`
@@ -44,27 +45,33 @@ const Event = ({ map }) => {
         if (data && !loading && !error) {
             const { airtableEvent } = data
             if (!airtableEvent || !airtableEvent.races) return
-            const types = getRaceTypes(airtableEvent.races)
-            setRaceTypes(types)
-            setRaceType(types[0])
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data])
+            if (raceType === null) {
+                const types = getRaceTypes(airtableEvent.races)
+                setRaceTypes(types)
+                setRaceType(types[0])
+            } else {
+                const race = airtableEvent.races.find((race) => {
+                    return race.type === raceType
+                })
+                if (!race || !race.mapUrl) return
+                async function fetchGPX() {
+                    const res = await axios.get(race.mapUrl)
+                    return res.data
+                }
 
-    useEffect(() => {
-        if (data && !loading && !error) {
-            async function fetchGPX() {
-                const res = await axios.get(races[0].mapUrl)
-                const data = res.data
-                var gpx = new gpxParser() //Create gpxParser Object
-                gpx.parse(data)
-                const route = gpx.toGeoJSON()
-                setRoute(route)
+                async function loadMapSource() {
+                    const data = await fetchGPX()
+                    var gpx = new gpxParser()
+                    gpx.parse(data)
+                    const route = gpx.toGeoJSON()
+                    setRoute(route)
+                    setPoints(race.aidStations)
+                }
+                loadMapSource()
             }
-            fetchGPX()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [raceType])
+    }, [data, raceType])
 
     if (error) return <p>{JSON.stringify(error)}</p>
     if (loading) return <p>Loading ...</p>
@@ -82,7 +89,6 @@ const Event = ({ map }) => {
     const opacity = 0.6
     const rgb = 50
     const overlay = `rgba(${rgb}, ${rgb}, ${rgb}, ${opacity})`
-
     return (
         <div>
             <div
@@ -108,7 +114,9 @@ const Event = ({ map }) => {
                             />
                         ))}
                     </div>
-                    <Map map={map} route={route} points={races[0].aidStations} />
+                    {route ? (
+                        <Map map={map} route={route} points={points} />
+                    ) : null}
                 </div>
             </div>
         </div>
