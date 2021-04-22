@@ -4,8 +4,8 @@ schema
             "airtable/event.graphql"
             "airtable/race.graphql"
             "airtable/event-races.graphql"
-            "airtable/aidStation.graphql"
-            "airtable/race-aidStations.graphql"
+            "airtable/marker.graphql"
+            "airtable/race-markers.graphql"
         ]
     ) {
     query: Query

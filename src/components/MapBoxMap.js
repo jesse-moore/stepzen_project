@@ -1,6 +1,5 @@
 import mapboxgl from 'mapbox-gl'
 // mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
-import * as turf from '@turf/turf'
 
 class mapboxMap {
     constructor() {
@@ -74,8 +73,32 @@ class mapboxMap {
                     type: 'circle',
                     source: 'points',
                     paint: {
-                        'circle-color': '#BFDBFE',
-                        'circle-stroke-color': '#1E3A8A',
+                        'circle-color': [
+                            'match',
+                            ['get', 'type'],
+							'Start / Finish',
+							'#A3E635',
+                            'Aid Station Level 1',
+                            '#BFDBFE',
+							'Aid Station Level 2',
+                            '#C4B5FD',
+							'Restroom',
+                            '#FDBA74',
+                            '#D4D4D8',
+                        ],
+                        'circle-stroke-color': [
+                            'match',
+                            ['get', 'type'],
+							'Start / Finish',
+							'#4D7C0F',
+                            'Aid Station Level 1',
+                            '#1E3A8A',
+							'Aid Station Level 2',
+                            '#5B21B6',
+							'Restroom',
+                            '#9A3412',
+                            '#000000',
+                        ],
                         'circle-stroke-width': 2,
                         'circle-radius': 10,
                     },
@@ -138,18 +161,22 @@ class mapboxMap {
     }
 
     removeSources() {
-        this.map.getSource('route').setData({
-            type: 'FeatureCollection',
-            features: [],
-        })
-        this.map.getSource('points').setData(pointsToGeojson(null))
+        if (this.map.getSource('route')) {
+            this.map.getSource('route').setData({
+                type: 'FeatureCollection',
+                features: [],
+            })
+        }
+        if (this.map.getSource('points')) {
+            this.map.getSource('points').setData(pointsToGeojson(null))
+        }
     }
 }
 
 const pointsToGeojson = (points) => {
     let features
     if (points) {
-        features = points.map(({ lat, lng, name, aidTypes }) => {
+        features = points.map(({ lat, lng, name, aidTypes, type }) => {
             return {
                 // feature for Mapbox DC
                 type: 'Feature',
@@ -160,6 +187,7 @@ const pointsToGeojson = (points) => {
                 properties: {
                     title: name,
                     types: aidTypes,
+                    type,
                 },
             }
         })

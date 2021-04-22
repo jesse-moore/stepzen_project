@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import dayjs from 'dayjs'
 import axios from 'axios'
 import gpxParser from 'gpxparser'
@@ -20,7 +20,9 @@ const Event = ({ map }) => {
                 date
                 name
                 description
-                location
+                address
+				city
+				state
                 heroImg {
                     url
                 }
@@ -31,28 +33,40 @@ const Event = ({ map }) => {
                     map {
                         url
                     }
-                    aidStations {
+                    markers {
                         lat
                         lng
                         aidTypes
                         name
+                        type
                     }
                 }
             }
         }
     `
-    const { loading, error, data } = useQuery(GET_RACES, {
-        variables: { eventSlug: slug },
-    })
+    const [getRaces, { loading, data, error }] = useLazyQuery(
+        GET_RACES,
+        {
+            variables: { eventSlug: slug },
+        }
+    )
 
     useEffect(() => {
+        getRaces()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
+        let isMounted = true
         if (data && !loading && !error) {
             const { airtableEvent } = data
             if (!airtableEvent || !airtableEvent.races) return
             if (raceType === null) {
                 const types = getRaceTypes(airtableEvent.races)
-                setRaceTypes(types)
-                setRaceType(types[0])
+                if (isMounted) {
+                    setRaceTypes(types)
+                    setRaceType(types[0])
+                }
             } else {
                 const race = airtableEvent.races.find((race) => {
                     return race.type === raceType
@@ -70,35 +84,51 @@ const Event = ({ map }) => {
                     var gpx = new gpxParser()
                     gpx.parse(data)
                     const route = gpx.toGeoJSON()
-                    setRoute(route)
-                    setPoints(race.aidStations)
+                    if (isMounted) {
+                        setRoute(route)
+                        setPoints(race.markers)
+                    }
                 }
                 loadMapSource()
             }
+        }
+        return () => {
+            isMounted = false
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, raceType])
 
     if (error) return <p>{JSON.stringify(error)}</p>
     if (loading) return <p>Loading ...</p>
-    const { airtableEvent } = data
+    const airtableEvent = data ? data.airtableEvent : null
     if (!airtableEvent) return <p>No Data</p> //TODO handle no event data
-    const { date, name, heroImg, location, description } = airtableEvent
+    const { date, name, heroImg, address, city, state, description } = airtableEvent
 
     return (
         <div>
             <div className="mt-4 mx-4">
-                <Hero {...{ date, name, heroImg, location }} />
+                <Hero {...{ date, name, heroImg, address, city, state }} />
                 <EventDescription description={description} />
                 <div>
                     <h2 className="text-2xl font-semibold">Races</h2>
                     <div className="flex flex-row mt-2">
-                        {raceTypes.map((type) => (
-                            <Type
-                                {...{ type, setRaceType, raceType }}
-                                key={type}
-                            />
-                        ))}
+                        {raceTypes.map((type) => {
+                            if (!route) {
+                                return (
+                                    <TypeList
+                                        {...{ type, raceType }}
+                                        key={type}
+                                    />
+                                )
+                            } else {
+                                return (
+                                    <TypeButtons
+                                        {...{ type, setRaceType, raceType }}
+                                        key={type}
+                                    />
+                                )
+                            }
+                        })}
                     </div>
                     {route ? (
                         <Map map={map} route={route} points={points} />
@@ -127,14 +157,14 @@ const parseDescription = (description) => {
     return descriptionLines
 }
 
-const Hero = ({ date, name, heroImg, location }) => {
-    // heroImg
+const Hero = ({ date, name, heroImg, address, city, state }) => {
     const dateString = dayjs(date).format('dddd MMMM DD, YYYY')
     return (
         <HeroImg heroImg={heroImg}>
             <div className="text-5xl font-semibold">{name}</div>
             <div className="text-xl pt-4">{dateString}</div>
-            <div className="text-xl pt-4">{location}</div>
+            <div className="text-xl pt-4">{address}</div>
+            <div className="text-xl">{`${city}, ${state}`}</div>
         </HeroImg>
     )
 }
@@ -223,7 +253,7 @@ const typeStyle = (type, currentType) => {
     }
 }
 
-const Type = ({ type, setRaceType, raceType }) => {
+const TypeButtons = ({ type, setRaceType, raceType }) => {
     return (
         <button
             style={typeStyle(type, raceType)}
@@ -232,6 +262,17 @@ const Type = ({ type, setRaceType, raceType }) => {
         >
             {type}
         </button>
+    )
+}
+
+const TypeList = ({ type, raceType }) => {
+    return (
+        <div
+            style={typeStyle(type, raceType)}
+            className="py-1 px-2 w-16 min-w-max mr-2 rounded-md text-sm text-center font-semibold"
+        >
+            {type}
+        </div>
     )
 }
 

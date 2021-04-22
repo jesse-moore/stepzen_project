@@ -5,16 +5,22 @@ const Map = ({ map, route, points }) => {
     const mapContainer = useRef(null)
 
     useEffect(() => {
-        mapContainer.current.appendChild(map.element)
+        let isMounted = true
+        if (isMounted) {
+            mapContainer.current.appendChild(map.element)
+        }
         async function loadMap() {
             if (!map.isLoaded) {
                 await map.loadMap({ route, points })
-                setMapIsLoaded(map.isLoaded)
+                if (isMounted) {
+                    setMapIsLoaded(map.isLoaded)
+                }
             }
         }
         loadMap()
-		
+
         return () => {
+            isMounted = false
             map.removeSources()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

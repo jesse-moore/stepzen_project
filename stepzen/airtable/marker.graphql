@@ -1,0 +1,24 @@
+type Marker {
+    id: ID!
+    name: String!
+    lat: Float
+    lng: Float
+    aidTypes: String
+    type: String
+}
+
+type Query {
+    airtableMarkers(raceID: ID!): [Marker]
+        @rest(
+            resultroot: "records[]"
+            setters: [
+                { field: "name", path: "fields.Name" }
+                { field: "lat", path: "fields.Latitude" }
+                { field: "lng", path: "fields.Longitude" }
+                { field: "type", path: "fields.Type" }
+                { field: "aidTypes", path: "fields.aid_types_string" }
+            ]
+            endpoint: "https://api.airtable.com/v0/$baseid/markers?filterByFormula=AND(NOT%28%7BName%7D%20%3D%20%27%27%29,{race_id}=%27$raceID%27)"
+            configuration: "airtable_config"
+        )
+}

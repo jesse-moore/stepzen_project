@@ -1,7 +1,7 @@
 extend type Race {
-  aidStations: [AidStation]
+  markers: [Marker]
     @materializer(
-      query: "airtableAidStations"
+      query: "airtableMarkers"
       arguments: [{ name: "raceID", field: "id" }]
     )
 }
