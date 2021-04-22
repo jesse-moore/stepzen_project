@@ -18,7 +18,8 @@ type Query {
                 { field: "type", path: "fields.Type" }
                 { field: "aidTypes", path: "fields.aid_types_string" }
             ]
-            endpoint: "https://api.airtable.com/v0/$baseid/markers?filterByFormula=AND(NOT%28%7BName%7D%20%3D%20%27%27%29,{race_id}=%27$raceID%27)"
+            endpoint: "https://api.airtable.com/v0/$baseid/markers?filterByFormula=FIND(%22$raceID%22%2C+ARRAYJOIN(%7Brace_id%7D%2C%22+%22))"
+            # endpoint: "https://api.airtable.com/v0/$baseid/markers?filterByFormula=FIND(%22rec4AMfHQ1MPs7xdc%22%2C+ARRAYJOIN(%7Brace_id%7D%2C%22+%22))"
             configuration: "airtable_config"
         )
 }
