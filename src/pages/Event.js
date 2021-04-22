@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useQuery, useLazyQuery } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import dayjs from 'dayjs'
 import axios from 'axios'
 import gpxParser from 'gpxparser'

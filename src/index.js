@@ -1,6 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import mapboxgl from 'mapbox-gl'
+import mapboxgl from 'mapbox-gl/dist/mapbox-gl-csp'
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import MapboxWorker from 'worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
@@ -14,6 +16,7 @@ const {
     REACT_APP_STEPZEN_URI,
     REACT_APP_MAPBOX_KEY,
 } = process.env
+mapboxgl.workerClass = MapboxWorker
 mapboxgl.accessToken = REACT_APP_MAPBOX_KEY
 
 const client = new ApolloClient({
